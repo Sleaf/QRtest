@@ -4,36 +4,31 @@ var stype = 0;
 var gUM = false;
 var webkit = false;
 var videoDiv = null;
+var loading = ['.', '..', '...'];//只是个表示在动的效果
+var spanTime = 1000;//采样间隔（ms）
 
-function initCanvas(w, h) {
+function initCanvas(width, height) {
   gCanvas = document.getElementById("qr-canvas");
-  gCanvas.style.width = w + "px";
-  gCanvas.style.height = h + "px";
-  gCanvas.width = w;
-  gCanvas.height = h;
+  gCanvas.width = width;
+  gCanvas.height = height;
   gCtx = gCanvas.getContext("2d");
-  gCtx.clearRect(0, 0, w, h);
+  gCtx.clearRect(0, 0, width, height);
 }
 
 
 function captureToCanvas() {
-  if (stype !== 1)
-    return;
+  if (stype !== 1) return;
+  //获取到设备
   if (gUM) {
+    gCtx.drawImage(videoDiv, 0, 0);
     try {
-      gCtx.drawImage(videoDiv, 0, 0);
-      try {
-        qrcode.decode();
-      }
-      catch (e) {
-        console.log(e);
-        setTimeout(captureToCanvas, 500);
-      }
+      qrcode.decode();
     }
     catch (e) {
-      console.log(e);
-      setTimeout(captureToCanvas, 500);
+      //解析二维码错误
+      document.getElementById("result").innerHTML = "scanning" + loading[Date.now() % 3];
     }
+    setTimeout(captureToCanvas, spanTime);
   }
 }
 
@@ -42,38 +37,20 @@ function isCanvasSupported() {
   return !!(elem.getContext && elem.getContext('2d'));
 }
 
-
-function load() {
-  if (isCanvasSupported() && window.File && window.FileReader) {
-    initCanvas(800, 600);
-    qrcode.callback = function read(a) {
-      var html = "<br>";
-      if (a.indexOf("http://") === 0 || a.indexOf("https://") === 0)
-        html += "<a target='_blank' href='" + a + "'>" + a + "</a><br>";
-      html += "<b>" + a + "</b><br><br>";
-      document.getElementById("result").innerHTML = html;
-    };
-    document.getElementById("mainbody").style.display = "inline";
-    setwebcam();
-  }
-  else {
-    document.getElementById("mainbody").style.display = "inline";
-    document.getElementById("mainbody").innerHTML = '<p id="mp1">QR code scanner for HTML5 capable browsers</p><br>' +
-      '<br><p id="mp2">sorry your browser is not supported</p><br><br>' +
-      '<p id="mp1">try <a href="http://www.mozilla.com/firefox"><img src="firefox.png"/></a> or <a href="http://chrome.google.com"><img src="chrome_logo.gif"/></a> or <a href="http://www.opera.com"><img src="Opera-logo.png"/></a></p>';
-  }
-}
-
 function setwebcam() {
   var options = true;
   if (navigator.mediaDevices && navigator.mediaDevices.enumerateDevices) {
+    //获取可用镜头
     try {
       navigator.mediaDevices.enumerateDevices()
         .then(function (devices) {
           devices.forEach(function (device) {
             if (device.kind === 'videoinput') {
-              if (device.label.toLowerCase().search("back") > -1)
+              console.log(device);
+              if (device.label.toLowerCase().includes("back")) {
                 options = {'deviceId': {'exact': device.deviceId}, 'facingMode': 'environment'};
+                console.log(options);
+              }
             }
             console.log(device.kind + ": " + device.label + " id = " + device.deviceId);
           });
@@ -93,9 +70,9 @@ function setwebcam() {
 
 function setwebcam2(options) {
   console.log('options：', options);
-  document.getElementById("result").innerHTML = "- scanning -";
+  document.getElementById("result").innerHTML = "scanning...";
   if (stype === 1) {
-    setTimeout(captureToCanvas, 500);
+    setTimeout(captureToCanvas, spanTime);
     return;
   }
   videoDiv = document.getElementById("videoDiv");
@@ -118,16 +95,33 @@ function setwebcam2(options) {
   }
 
   stype = 1;
-  setTimeout(captureToCanvas, 500);
+  setTimeout(captureToCanvas, spanTime);
 }
 
 function success(stream) {
   videoDiv.srcObject = stream;
   videoDiv.play();
   gUM = true;
-  setTimeout(captureToCanvas, 500);
+  setTimeout(captureToCanvas, spanTime);
 }
 
 function error(error) {
   gUM = false;
+}
+
+if (isCanvasSupported() && window.File && window.FileReader) {
+  var length = window.innerWidth;
+  initCanvas(length, length);
+  //采集到数据后的回调
+  qrcode.callback = function read(a) {
+    var html = "<br>";
+    if (a.indexOf("http://") === 0 || a.indexOf("https://") === 0)
+      html += "<a target='_blank' href='" + a + "'>" + a + "</a><br>";
+    html += "<b>" + a + "</b><br><br>";
+    document.getElementById("result").innerHTML = html;
+  };
+  setwebcam();
+}
+else {
+  alert('QR code scanner for HTML5 capable browsers, sorry your browser is not supported.');
 }

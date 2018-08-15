@@ -2,31 +2,33 @@
 <head>
   <meta name="description" content="QR Code scanner"/>
   <meta name="keywords" content="qrcode,qr code,scanner,barcode,javascript"/>
-  <meta name="language" content="English"/>
-  <meta name="copyright" content="Lazar Laszlo (c) 2011"/>
-  <meta name="Revisit-After" content="1 Days"/>
-  <meta name="robots" content="index, follow"/>
+  <meta name="copyright" content="Sleaf"/>
   <meta http-equiv="Content-type" content="text/html;charset=UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Web QR</title>
+  <meta content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0;" name="viewport"/>
+  <title>Web QR Scanner Test</title>
   <script type="text/javascript" src="./lib/llqrcode.js"></script>
-  <script type="text/javascript" src="webqr.js"></script>
   <style>
-    .center * {
+    #videoDiv {
+      width: 100%;
+    }
+
+    #result {
+      width: 100%;
       text-align: center;
+    }
+
+    #qr-canvas {
+      position: absolute;
+      top: 0;
+      opacity: 0
     }
   </style>
 </head>
 
 <body>
-<div id="mainbody" class="center">
-  <div id="outdiv">
-    <video id="videoDiv" autoplay></video>
-  </div>
-  <div id="result"></div>
-</div>
-<canvas style="opacity: 0" id="qr-canvas" width="800" height="600"></canvas>
-<script type="text/javascript">load();</script>
+<video id="videoDiv" autoplay></video>
+<div id="result"></div>
+<canvas id="qr-canvas" width="800" height="600"></canvas>
+<script type="text/javascript" src="webqr.js"></script>
 </body>
-
 </html>
